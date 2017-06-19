@@ -3,6 +3,7 @@
 using namespace std;
 
 const int SIZE = 32;
+const int NEURONS = 64;
 const int TEST_SIZE = 134;
 const int TRAIN_SIZE = 1800;
 
@@ -32,7 +33,7 @@ double sq_euclidean_distance(Matrix &a,Matrix &b){
   return sq_distance;
 }
 
-vector<Matrix> train,test;
+vector<Matrix> train,test,neurons;
 void read_digits(vector<Matrix> &m,int a,FILE *src){
   for (int i = 0,c; i < a; i++) {    
     double digit[SIZE][SIZE];
@@ -44,6 +45,33 @@ void read_digits(vector<Matrix> &m,int a,FILE *src){
     }
     fscanf(src,"  %c ",&c);
     m.push_back(digit);
+  }
+}
+
+void init_neurons(){
+  const int interval = 1 << 16;  
+  srand(time(NULL));
+  for(int i = 0; i < NEURONS; i++){
+    double matrix[SIZE][SIZE];
+    for(int j = 0; j < SIZE; j++)
+      for(int k = 0; k < SIZE; k++)
+        matrix[j][k] = rand() % interval;    
+    neurons.push_back(Matrix(matrix));
+  }
+}
+
+void train_neurons(){
+  for(int i = 0; i < TRAIN_SIZE; i++){        
+    //searching for the closest neuron.
+    Matrix BMU = neurons[0];
+    double min_dist = sq_euclidean_distance(train[i],BMU);
+    for(int j = 1; j < NEURONS; j++){      
+      double dist_ji = sq_euclidean_distance(train[i],neurons[j]);
+      if(dist_ji < min_dist){
+        BMU = neurons[j];
+        dist_ji = min_dist;
+      }
+    }     
   }
 }
 
@@ -60,6 +88,9 @@ int main(int argc, char const *argv[]) {
   FILE *testing_file = fopen(argv[2],"r");
   read_digits(test,TEST_SIZE,testing_file);  
   fclose(testing_file);
+  
+  init_neurons();  
+  train_neurons();
   
   return 0;
 }
