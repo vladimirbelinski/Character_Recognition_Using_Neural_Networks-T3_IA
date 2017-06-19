@@ -19,12 +19,18 @@ struct Matrix{
         r[i][j] = cells[i][j]-o.cells[i][j];
     return Matrix(r);
   }
-  void square_elements(){
-    for(int i = 0; i < SIZE; i++)
-      for(int j = 0; j < SIZE; j++)
-        cells[i][j] *= cells[i][j];
-  }
 };
+
+double sq_euclidean_distance(Matrix &a,Matrix &b){
+  double sq_distance = 0;
+  for(int i = 0; i < SIZE; i++){
+    for(int j = 0; j < SIZE; j++){
+      int dij = a.cells[i][j] - b.cells[i][j];
+      sq_distance += dij*dij;
+    }
+  }
+  return sq_distance;
+}
 
 vector<Matrix> train,test;
 void read_digits(vector<Matrix> &m,int a,FILE *src){
