@@ -7,7 +7,7 @@ const int NEURONS = 64;
 const int TEST_SIZE = 134;
 const int TRAIN_SIZE = 1800;
 double alpha = .1;
-const double sigma = 32;
+const double sigma = 16;
 
 struct Matrix{  
   double cells[SIZE][SIZE];
@@ -53,7 +53,7 @@ double sq_euclidean_distance(Matrix &a,Matrix &b){
   double sq_distance = 0.;
   for(int i = 0; i < SIZE; i++){
     for(int j = 0; j < SIZE; j++){
-      double dij = ((int)(a.cells[i][j]+0.5)) - ((int)(b.cells[i][j]+0.5));
+      double dij = a.cells[i][j] - b.cells[i][j];
       sq_distance += dij*dij;
     }
   }
@@ -101,8 +101,7 @@ void train_neurons(){
     }  
     //updating the neighboring of BMU.         
     for(int j = 0; j < NEURONS; j++){       
-      double dist = sq_euclidean_distance(BMU,neurons[j]);               
-      printf("%lf\n",-dist/sigma);
+      double dist = sq_euclidean_distance(BMU,neurons[j]);                     
       Matrix shift = (train[i]-neurons[j])*pow(M_E, -dist/sigma)*alpha;
       neurons[j] = neurons[j] + shift;          
     }
@@ -123,7 +122,7 @@ int main(int argc, char const *argv[]) {
   fclose(testing_file);  
   
   init_neurons();     
-  for(int l = 0; alpha > 0 && l < 50; l++ ){
+  for(int l = 0; alpha > 0; l++ ){
     train_neurons();  
     for(int i = 0; i < NEURONS; i++){
       int mn = 0;
