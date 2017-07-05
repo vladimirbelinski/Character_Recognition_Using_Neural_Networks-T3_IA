@@ -4,11 +4,10 @@ using namespace std;
 
 const int SIZE = 32;
 const int NEURONS = 24;
-const int TEST_SIZE = 134;
-const int TRAIN_SIZE = 1800;
-const int TRAIN_ITER = 10;
+const int TRAIN_ITER = 15;
+const double sigma = 0.01;
+
 double alpha = .1;
-const double sigma = 0.25;
 
 #define f first
 #define s second
@@ -79,7 +78,9 @@ double sq_euclidean_distance(ii a,ii b){
 
 vector<Matrix> train,test;
 Matrix neurons[NEURONS][NEURONS];
-void read_digits(vector<Matrix> &m,int a,FILE *src){
+void read_digits(vector<Matrix> &m,FILE *src){
+  int a;
+  fscanf(src,"%d\n",&a);
   for (int i = 0,c; i < a; i++) {    
     double digit[SIZE][SIZE];
     for(int j = 0; j < SIZE; j++){
@@ -130,8 +131,8 @@ vector<int> randomic_order(int n){
 }
 
 void train_neurons(){
-  vector<int> training_order = randomic_order(TRAIN_SIZE);  
-  for(int i = 0; i < TRAIN_SIZE; i++){                
+  vector<int> training_order = randomic_order(train.size());  
+  for(int i = 0; i < (int)train.size(); i++){                
     ii BMU = closest_neuron(train[training_order[i]]);    
     //updating the neighborhood of BMU.         
     for(int j = 0; j < NEURONS; j++){       
@@ -152,7 +153,7 @@ void print_matches(){
     for(int i2 = 0; i2 < NEURONS; i2++){
       int mn = 0;
       double mn_dist = sq_euclidean_distance(neurons[i][i2],train[mn]);
-      for(int j = 1; j < TRAIN_SIZE; j++){
+      for(int j = 1; j < (int)train.size(); j++){
         double dist = sq_euclidean_distance(neurons[i][i2],train[j]);
         if(mn_dist > dist){
           mn = j;
@@ -176,23 +177,39 @@ void print_matches(){
   }
 }
 
-//argv[1] = training set
-//argv[2] = testing set
-int main(int argc, char const *argv[]) {  
-  //reading training set
-  FILE *training_file = fopen(argv[1],"r");
-  read_digits(train,TRAIN_SIZE,training_file);
-  fclose(training_file);
+void load_neurons(string dir){
+}
+
+void save_neurons(string dir){
+}
+
+//--tes path/to/test/file
+//--tra path/to/training/file
+//--lnet path/to/load/trained_neurons/file
+//--snet path/to/save/trained_neurons/file
+int main(int argc, char const *argv[]) {    
+  map<string,string> param;
+  for(int i = 1; i < argc; i += 2) param[argv[i]] = argv[i+1];
+  if(param.find("--lnet") != param.end()) load_neurons(param["--lnet"]);
+  else init_neurons();    
   
-  //reading testing set
-  FILE *testing_file = fopen(argv[2],"r");
-  read_digits(test,TEST_SIZE,testing_file);  
-  fclose(testing_file);  
+  if(param.find("--tra") != param.end()){
+    //reading training set
+    FILE *training_file = fopen(param["--tra"].c_str(),"r");
+    read_digits(train,training_file);
+    fclose(training_file);
+    for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .0001)
+      train_neurons();          
+    print_matches();
+  }
   
-  init_neurons();       
-  for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++,alpha -= .001 )
-    train_neurons();        
+  if(param.find("--tes") != param.end()){
+    //reading testing set
+    FILE *testing_file = fopen(param["--tes"].c_str(),"r");
+    read_digits(test,testing_file);  
+    fclose(testing_file);    
+  }     
   
-  print_matches();   
+  if(param.find("--snet") != param.end()) save_neurons(param["--snet"]);
   return 0;
 }
