@@ -7,7 +7,7 @@ const int NEURONS = 8;
 const int TEST_SIZE = 134;
 const int TRAIN_SIZE = 1800;
 double alpha = .1;
-const double sigma = 16;
+const double sigma = 2;
 
 #define f first
 #define s second
@@ -44,10 +44,11 @@ struct Matrix{
   double* operator[](int i){
     return cells[i];
   }  
-  void print(){
+  void print(bool trunc){
     for(int i = 0; i < SIZE; i++){
       for(int j = 0; j < SIZE; j++)
-        printf("%d ",(int)(cells[i][j]+0.5));
+        if(trunc) printf("%d ",(int)(cells[i][j]+0.5));
+        else printf("%.4lf ",cells[i][j]);
       printf("\n");
     }
   }
@@ -109,9 +110,23 @@ ii closest_neuron(Matrix &m){
   return BMU;
 }
 
-void train_neurons(){  
+vector<int> randomic_order(int n){
+  list<int> elem;
+  for(int i = 0; i < n; i++) elem.push_back(i);
+  vector<int> order;
+  while(!elem.empty()){
+    auto it = elem.begin();    
+    advance(it,rand()%elem.size());
+    order.push_back(*it);
+    elem.erase(it);
+  }
+  return order;
+}
+
+void train_neurons(){
+  vector<int> training_order = randomic_order(TRAIN_SIZE);  
   for(int i = 0; i < TRAIN_SIZE; i++){                
-    ii BMU = closest_neuron(train[i]);    
+    ii BMU = closest_neuron(train[training_order[i]]);    
     //updating the neighborhood of BMU.         
     for(int j = 0; j < NEURONS; j++){       
       for(int j2 = 0; j2 < NEURONS; j2++){        
@@ -137,7 +152,7 @@ int main(int argc, char const *argv[]) {
   fclose(testing_file);  
   
   init_neurons();       
-  for(int l = 0; alpha > 0; l++,alpha -= .001 ){
+  for(int l = 0; alpha > 0 && l < 1; l++,alpha -= .001 ){
     train_neurons();  
     for(int i = 0; i < NEURONS; i++){
       for(int i2 = 0; i2 < NEURONS; i2++){
@@ -150,10 +165,10 @@ int main(int argc, char const *argv[]) {
             mn_dist = dist;
           }
         }
-        printf("%d\n",i);
-        neurons[i][i2].print();
+        printf("%d %d\n",i,i2);
+        neurons[i][i2].print(false);
         printf("\n");
-        train[mn].print();
+        train[mn].print(true);
         printf("\n");      
       }
     }    
