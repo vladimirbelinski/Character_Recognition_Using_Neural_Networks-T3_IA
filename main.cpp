@@ -3,21 +3,27 @@
 using namespace std;
 
 const int SIZE = 32;
-const int NEURONS = 8;
+const int NEURONS = 24;
 const int TEST_SIZE = 134;
 const int TRAIN_SIZE = 1800;
+const int TRAIN_ITER = 10;
 double alpha = .1;
-const double sigma = 2;
+const double sigma = 0.25;
 
 #define f first
 #define s second
 
 typedef pair<int,int> ii;
 
-struct Matrix{ 
+struct Matrix{   
+  int digit;
   double cells[SIZE][SIZE];
-  Matrix(){}
+  Matrix(){}  
   Matrix(double _cells[SIZE][SIZE]){
+    memcpy(cells,_cells,sizeof cells);
+  }  
+  Matrix(double _cells[SIZE][SIZE],int _digit){
+    digit = _digit;
     memcpy(cells,_cells,sizeof cells);
   }  
   Matrix operator-(Matrix &o){
@@ -82,8 +88,8 @@ void read_digits(vector<Matrix> &m,int a,FILE *src){
         digit[j][k] = c-'0';        
       }      
     }
-    fscanf(src,"  %c ",&c);
-    m.push_back(digit);
+    fscanf(src,"  %c ",&c);        
+    m.push_back(Matrix(digit,c-'0'));
   }
 }
 
@@ -138,6 +144,38 @@ void train_neurons(){
   }
 }
 
+int matches[NEURONS][NEURONS];
+void print_matches(){
+  int frequence[10];
+  memset(frequence,0,sizeof(frequence));
+  for(int i = 0; i < NEURONS; i++){
+    for(int i2 = 0; i2 < NEURONS; i2++){
+      int mn = 0;
+      double mn_dist = sq_euclidean_distance(neurons[i][i2],train[mn]);
+      for(int j = 1; j < TRAIN_SIZE; j++){
+        double dist = sq_euclidean_distance(neurons[i][i2],train[j]);
+        if(mn_dist > dist){
+          mn = j;
+          mn_dist = dist;
+        }
+      }
+      printf("%d %d\n",i,i2);
+      neurons[i][i2].print(true);
+      printf("\n");
+      train[mn].print(true);            
+      frequence[train[mn].digit]++;
+      matches[i][i2] = train[mn].digit;
+      printf("\n");      
+    }
+  }
+  for(int i = 0; i < 10; i++) printf("%d %d\n",i,frequence[i]);  
+  for(int i = 0; i < NEURONS; i++){
+    for(int i2 = 0; i2 < NEURONS; i2++)
+      printf("%d ",matches[i][i2]);
+    printf("\n");
+  }
+}
+
 //argv[1] = training set
 //argv[2] = testing set
 int main(int argc, char const *argv[]) {  
@@ -152,26 +190,9 @@ int main(int argc, char const *argv[]) {
   fclose(testing_file);  
   
   init_neurons();       
-  for(int l = 0; alpha > 0 && l < 1; l++,alpha -= .001 ){
-    train_neurons();  
-    for(int i = 0; i < NEURONS; i++){
-      for(int i2 = 0; i2 < NEURONS; i2++){
-        int mn = 0;
-        double mn_dist = sq_euclidean_distance(neurons[i][i2],train[mn]);
-        for(int j = 1; j < TRAIN_SIZE; j++){
-          double dist = sq_euclidean_distance(neurons[i][i2],train[j]);
-          if(mn_dist > dist){
-            mn = j;
-            mn_dist = dist;
-          }
-        }
-        printf("%d %d\n",i,i2);
-        neurons[i][i2].print(false);
-        printf("\n");
-        train[mn].print(true);
-        printf("\n");      
-      }
-    }    
-  }
+  for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++,alpha -= .001 )
+    train_neurons();        
+  
+  print_matches();   
   return 0;
 }
