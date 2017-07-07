@@ -190,6 +190,7 @@ void load_neurons(string dir){
         }
       neurons[i][i2] = Matrix(digit);
     }
+  fclose(neurons_file);
 }
 
 void save_neurons(string dir){
