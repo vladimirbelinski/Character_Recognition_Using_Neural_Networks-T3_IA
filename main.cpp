@@ -3,8 +3,8 @@
 using namespace std;
 
 const int SIZE = 32;
-const int NEURONS = 24;
-const int TRAIN_ITER = 15;
+const int NEURONS = 10;
+const int TRAIN_ITER = 1;
 const double sigma = 0.01;
 
 double alpha = .1;
@@ -95,12 +95,13 @@ void read_digits(vector<Matrix> &m,FILE *src){
 }
 
 void init_neurons(){
+  printf("Inicializando rede.\n");
   srand(time(NULL));
   for(int i = 0; i < NEURONS; i++)
     for(int i2 = 0; i2 < NEURONS; i2++)
       for(int j = 0; j < SIZE; j++)
         for(int k = 0; k < SIZE; k++)
-          neurons[i][i2][j][k] = (double)rand() / RAND_MAX;
+          neurons[i][i2][j][k] = ((double)rand()) / RAND_MAX;
 }
 
 ii closest_neuron(Matrix &m){
@@ -131,6 +132,7 @@ vector<int> randomic_order(int n){
 }
 
 void train_neurons(){
+  printf("Treinando rede.\n");
   vector<int> training_order = randomic_order(train.size());
   for(int i = 0; i < (int)train.size(); i++){
     ii BMU = closest_neuron(train[training_order[i]]);
@@ -178,6 +180,7 @@ void print_matches(){
 }
 
 void load_neurons(string dir){
+  printf("Carregando rede.\n");
   FILE *neurons_file = fopen(dir.c_str(),"r");
   for(int i = 0; i < NEURONS; i++)
     for(int i2 = 0; i2 < NEURONS; i2++) {
@@ -194,6 +197,18 @@ void load_neurons(string dir){
 }
 
 void save_neurons(string dir){
+  printf("Salvando rede.\n");
+  FILE *neurons_file = fopen(dir.c_str(),"w");
+  for(int i = 0; i < NEURONS; i++)
+    for(int i2 = 0; i2 < NEURONS; i2++){
+      for(int j = 0; j < SIZE; j++){
+        for(int k = 0; k < SIZE; k++)
+          fprintf(neurons_file," %lf",neurons[i][i2][j][k]);
+        fprintf(neurons_file,"\n");
+      }
+      fprintf(neurons_file,"\n");
+    }
+  fclose(neurons_file);
 }
 
 //--tes path/to/test/file
@@ -213,7 +228,7 @@ int main(int argc, char const *argv[]) {
     fclose(training_file);
     for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .0001)
       train_neurons();
-    print_matches();
+    //print_matches();
   }
 
   if(param.find("--tes") != param.end()){
