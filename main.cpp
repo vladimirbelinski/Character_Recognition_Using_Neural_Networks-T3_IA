@@ -3,11 +3,11 @@
 using namespace std;
 
 const int SIZE = 32;
-const int NEURONS = 10;
-const int TRAIN_ITER = 1;
-const double sigma = 0.01;
+const int NEURONS = 16;
+const int TRAIN_ITER = 20;
+const double sigma = 2;
 
-double alpha = .1;
+double alpha = .05;
 
 #define f first
 #define s second
@@ -80,7 +80,7 @@ vector<Matrix> train,test;
 Matrix neurons[NEURONS][NEURONS];
 void read_digits(vector<Matrix> &m,FILE *src){
   int a;
-  fscanf(src,"%d\n",&a);
+  fscanf(src,"%d\n",&a);  
   for (int i = 0,c; i < a; i++) {
     double digit[SIZE][SIZE];
     for(int j = 0; j < SIZE; j++){
@@ -88,7 +88,7 @@ void read_digits(vector<Matrix> &m,FILE *src){
         fscanf(src," %c",&c);
         digit[j][k] = c-'0';
       }
-    }
+    }   
     fscanf(src,"  %c ",&c);
     m.push_back(Matrix(digit,c-'0'));
   }
@@ -132,15 +132,15 @@ vector<int> randomic_order(int n){
 }
 
 void train_neurons(){
-  printf("Treinando rede.\n");
-  vector<int> training_order = randomic_order(train.size());
-  for(int i = 0; i < (int)train.size(); i++){
+  vector<int> training_order = randomic_order(train.size());  
+  for(int i = 0; i < (int)train.size(); i++){        
     ii BMU = closest_neuron(train[training_order[i]]);
     //updating the neighborhood of BMU.
     for(int j = 0; j < NEURONS; j++){
       for(int j2 = 0; j2 < NEURONS; j2++){
-        double dist = sq_euclidean_distance(BMU,ii(j,j2));
-        Matrix shift = (train[i]-neurons[j][j2])*pow(M_E, -dist/sigma)*alpha;
+        double dist = sq_euclidean_distance(BMU,ii(j,j2));        
+        if(dist > 20.*sigma ) continue;        
+        Matrix shift = (train[training_order[i]]-neurons[j][j2])*pow(M_E, -dist/sigma)*alpha;
         neurons[j][j2] = neurons[j][j2] + shift;
       }
     }
@@ -162,13 +162,13 @@ void print_matches(){
           mn_dist = dist;
         }
       }
-      printf("%d %d\n",i,i2);
-      neurons[i][i2].print(true);
-      printf("\n");
-      train[mn].print(true);
+      //printf("%d %d\n",i,i2);
+      //neurons[i][i2].print(true);
+      //printf("\n");
+      //train[mn].print(true);
       frequence[train[mn].digit]++;
       matches[i][i2] = train[mn].digit;
-      printf("\n");
+      //printf("\n");
     }
   }
   for(int i = 0; i < 10; i++) printf("%d %d\n",i,frequence[i]);
@@ -226,9 +226,9 @@ int main(int argc, char const *argv[]) {
     FILE *training_file = fopen(param["--tra"].c_str(),"r");
     read_digits(train,training_file);
     fclose(training_file);
-    for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .0001)
+    for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00001)
       train_neurons();
-    //print_matches();
+    print_matches();
   }
 
   if(param.find("--tes") != param.end()){
