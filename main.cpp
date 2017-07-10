@@ -3,9 +3,9 @@
 using namespace std;
 
 const int SIZE = 32;
-const int NEURONS = 16;
-const int TRAIN_ITER = 20;
-const double sigma = 2;
+const int NEURONS = 20;
+const int TRAIN_ITER = 400;
+const double sigma = 0.8;
 
 double alpha = .05;
 
@@ -137,6 +137,8 @@ void train_neurons(){
     ii BMU = closest_neuron(train[training_order[i]]);
     //updating the neighborhood of BMU.
     for(int j = 0; j < NEURONS; j++){
+      double dist = sq_euclidean_distance(BMU,ii(j,BMU.s));        
+      if(dist > 20.*sigma ) continue;
       for(int j2 = 0; j2 < NEURONS; j2++){
         double dist = sq_euclidean_distance(BMU,ii(j,j2));        
         if(dist > 20.*sigma ) continue;        
@@ -220,7 +222,6 @@ int main(int argc, char const *argv[]) {
   for(int i = 1; i < argc; i += 2) param[argv[i]] = argv[i+1];
   if(param.find("--lnet") != param.end()) load_neurons(param["--lnet"]);
   else init_neurons();
-
   if(param.find("--tra") != param.end()){
     //reading training set
     FILE *training_file = fopen(param["--tra"].c_str(),"r");
@@ -230,14 +231,12 @@ int main(int argc, char const *argv[]) {
       train_neurons();
     print_matches();
   }
-
   if(param.find("--tes") != param.end()){
     //reading testing set
     FILE *testing_file = fopen(param["--tes"].c_str(),"r");
     read_digits(test,testing_file);
     fclose(testing_file);
   }
-
   if(param.find("--snet") != param.end()) save_neurons(param["--snet"]);
   return 0;
 }
