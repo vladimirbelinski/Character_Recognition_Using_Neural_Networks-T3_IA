@@ -3,8 +3,8 @@
 using namespace std;
 
 const int SIZE = 32;
-const int NEURONS = 20;
-const int TRAIN_ITER = 400;
+const int NEURONS = 2;
+const int TRAIN_ITER = 1;
 const double sigma = 0.8;
 
 double alpha = .05;
@@ -181,18 +181,15 @@ void print_matches(){
   }
 }
 
-void load_neurons(string dir){
+void load_neurons(string dir){  
   printf("Carregando rede.\n");
   FILE *neurons_file = fopen(dir.c_str(),"r");
   for(int i = 0; i < NEURONS; i++)
-    for(int i2 = 0; i2 < NEURONS; i2++) {
-      double w;
+    for(int i2 = 0; i2 < NEURONS; i2++){      
       double digit[SIZE][SIZE];
       for(int j = 0; j < SIZE; j++)
-        for(int k = 0; k < SIZE; k++){
-          fscanf(neurons_file," %lf",&w);
-          digit[j][k] = w;
-        }
+        for(int k = 0; k < SIZE; k++)
+          fscanf(neurons_file," %lf",&digit[j][k]);                                          
       neurons[i][i2] = Matrix(digit);
     }
   fclose(neurons_file);
@@ -204,8 +201,9 @@ void save_neurons(string dir){
   for(int i = 0; i < NEURONS; i++)
     for(int i2 = 0; i2 < NEURONS; i2++){
       for(int j = 0; j < SIZE; j++){
-        for(int k = 0; k < SIZE; k++)
-          fprintf(neurons_file," %lf",neurons[i][i2][j][k]);
+        fprintf(neurons_file,"%lf",neurons[i][i2][j][0]);        
+        for(int k = 1; k < SIZE; k++)
+          fprintf(neurons_file," %lf",neurons[i][i2][j][k]);        
         fprintf(neurons_file,"\n");
       }
       fprintf(neurons_file,"\n");
@@ -227,8 +225,8 @@ int main(int argc, char const *argv[]) {
     FILE *training_file = fopen(param["--tra"].c_str(),"r");
     read_digits(train,training_file);
     fclose(training_file);
-    for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00001)
-      train_neurons();
+    //for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00001)
+      //train_neurons();
     print_matches();
   }
   if(param.find("--tes") != param.end()){
