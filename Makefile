@@ -5,11 +5,8 @@ LOAD_FROM = network.tra
 
 all: kohonen
 
-train0: all
+train_save: all
 	./kohonen --tra optdigits-orig.tra --snet ${SAVE_TO}
-
-train: all
-	./kohonen --lnet ${LOAD_FROM} --tra optdigits-orig.tra --snet ${SAVE_TO}
 
 load_test: all
 	./kohonen --lnet ${LOAD_FROM} --tes optdigits-orig.tes
