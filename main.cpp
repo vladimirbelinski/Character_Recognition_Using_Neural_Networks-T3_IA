@@ -16,13 +16,20 @@ typedef pair<int,int> ii;
 
 struct Matrix{
   int digit;
+  int digits[10];
   double cells[SIZE][SIZE];
-  Matrix(){}
+  Matrix(){
+    digit = -1;
+    memset(digits,0,sizeof(digits));
+  }
   Matrix(double _cells[SIZE][SIZE]){
+    digit = -1;
+    memset(digits,0,sizeof(digits));
     memcpy(cells,_cells,sizeof cells);
   }
   Matrix(double _cells[SIZE][SIZE],int _digit){
     digit = _digit;
+    memset(digits,0,sizeof(digits));
     memcpy(cells,_cells,sizeof cells);
   }
   Matrix operator-(Matrix &o){
@@ -78,6 +85,17 @@ double sq_euclidean_distance(ii a,ii b){
 
 vector<Matrix> train;
 Matrix neurons[NEURONS][NEURONS];
+void print_neuron_digits(){
+  for(int i = 0; i < NEURONS; i++){
+    for(int j = 0; j < NEURONS; j++){
+      if(j) printf(" ");
+      if(neurons[i][j].digit == -1) printf("_");
+      else printf("%d",neurons[i][j].digit);
+    }
+    printf("\n");
+  }
+}
+
 void read_digits(vector<Matrix> &m,FILE *src){  
   int a;  
   char line[SIZE+10];
@@ -149,43 +167,62 @@ void train_neurons(){
   }
 }
 
-void print_matches(vector<Matrix> & digits){
-  int frequence[10];
-  memset(frequence,0,sizeof(frequence));
-  int matches[NEURONS][NEURONS];  
-  for(int i = 0; i < NEURONS; i++){
-    for(int i2 = 0; i2 < NEURONS; i2++){
-      int mn = 0;
-      double mn_dist = sq_euclidean_distance(neurons[i][i2],digits[mn]);
-      for(int j = 1; j < (int)digits.size(); j++){
-        double dist = sq_euclidean_distance(neurons[i][i2],digits[j]);
-        if(mn_dist > dist){
-          mn = j;
-          mn_dist = dist;
+void match_training(vector<Matrix> & t){      
+  for(int k = 0; k < (int)t.size(); k++){    
+    ii BMU;
+    double BMU_dist = 401.;    
+    for(int i = 0; i < NEURONS; i++){
+      for(int i2 = 0; i2 < NEURONS; i2++){
+        double dist = sq_euclidean_distance(neurons[i][i2],t[k]);
+        if(dist < BMU_dist){
+          BMU = ii(i,i2);
+          BMU_dist = dist;          
         }
       }
-      frequence[digits[mn].digit]++;
-      matches[i][i2] = digits[mn].digit;      
+    }    
+    neurons[BMU.f][BMU.s].digits[t[k].digit]++;
+  } 
+  for(int i = 0; i < NEURONS; i++)
+    for(int i2 = 0; i2 < NEURONS; i2++){
+      int mx_d = -1;
+      int mx_ocurr = 0;
+      for(int k = 0; k < 10; k++)
+        if(neurons[i][i2].digits[k] > mx_ocurr){
+          mx_d = k;      
+          mx_ocurr = neurons[i][i2].digits[k];
+        }
+      neurons[i][i2].digit = mx_d;
     }
-  }
-  for(int i = 0; i < 10; i++) printf("%d %d\n",i,frequence[i]);
-  for(int i = 0; i < NEURONS; i++){
-    for(int i2 = 0; i2 < NEURONS; i2++)
-      printf("%d ",matches[i][i2]);
-    printf("\n");
-  }
+}
+
+void run_test(vector<Matrix> &t){  
+  int occurrences = 0;
+  for(int k = 0; k < (int)t.size(); k++){    
+    ii BMU;
+    double BMU_dist = 401.;    
+    for(int i = 0; i < NEURONS; i++){
+      for(int i2 = 0; i2 < NEURONS; i2++){        
+        double dist = sq_euclidean_distance(neurons[i][i2],t[k]);
+        if(dist < BMU_dist){
+          BMU = ii(i,i2);
+          BMU_dist = dist;          
+        }
+      }
+    }
+    occurrences += (neurons[BMU.f][BMU.s].digit == t[k].digit);
+  }   
+  printf("Number of matches: %lf%%\n",((double)occurrences*100)/(double)t.size());
 }
 
 void load_neurons(string dir){  
   printf("Carregando rede.\n");
   FILE *neurons_file = fopen(dir.c_str(),"r");
   for(int i = 0; i < NEURONS; i++)
-    for(int i2 = 0; i2 < NEURONS; i2++){      
-      double digit[SIZE][SIZE];
+    for(int i2 = 0; i2 < NEURONS; i2++){            
       for(int j = 0; j < SIZE; j++)
         for(int k = 0; k < SIZE; k++)
-          fscanf(neurons_file," %lf",&digit[j][k]);                                          
-      neurons[i][i2] = Matrix(digit);
+          fscanf(neurons_file," %lf",&neurons[i][i2][j][k]);                                                
+      fscanf(neurons_file," %d",&neurons[i][i2].digit);
     }
   fclose(neurons_file);
 }
@@ -201,7 +238,7 @@ void save_neurons(string dir){
           fprintf(neurons_file," %lf",neurons[i][i2][j][k]);        
         fprintf(neurons_file,"\n");
       }
-      fprintf(neurons_file,"\n");
+      fprintf(neurons_file,"%d\n\n",neurons[i][i2].digit);
     }
   fclose(neurons_file);
 }
@@ -214,27 +251,29 @@ int main(int argc, char const *argv[]) {
   map<string,string> param;
   for(int i = 1; i < argc; i += 2) param[argv[i]] = argv[i+1];
   if(param.find("--lnet") != param.end()) load_neurons(param["--lnet"]);
-  else init_neurons();    
-  if(param.find("--tra") != param.end()){
-    //reading training set
-    FILE *training_file = fopen(param["--tra"].c_str(),"r");    
-    read_digits(train,training_file);
-    fclose(training_file);  
-    for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .000025, sigma -= .0015){      
-      printf("Iteração: %d, alpha: %lf\n",l,alpha);
-      train_neurons();     
+  else{
+    init_neurons();    
+    if(param.find("--tra") != param.end()){
+      //reading training set
+      FILE *training_file = fopen(param["--tra"].c_str(),"r");    
+      read_digits(train,training_file);
+      fclose(training_file);  
+      for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00004, sigma -= .0015){      
+        printf("Iteração: %d, alpha: %lf, sigma: %lf\n",l,alpha,sigma);
+        train_neurons();     
+      }
+      match_training(train);    
+      print_neuron_digits();
     }
-    print_matches(train);    
-  }
+  }  
   if(param.find("--tes") != param.end()){  
     vector<Matrix> test;
     //reading testing set    
     FILE *testing_file = fopen(param["--tes"].c_str(),"r");
     read_digits(test,testing_file);
-    fclose(testing_file);
-    
-    print_matches(test);
-  }
+    fclose(testing_file);    
+    run_test(test);    
+  }  
   if(param.find("--snet") != param.end()) save_neurons(param["--snet"]);
   return 0;
 }
