@@ -10,11 +10,11 @@
 using namespace std;
 
 const int SIZE = 32;
-const int NEURONS = 20;
+const int NEURONS = 24;
 const int TRAIN_ITER = 1000;
 double sigma = 2;
 
-double alpha = .05;
+double alpha = .1;
 
 #define f first
 #define s second
@@ -157,7 +157,7 @@ vector<int> randomic_order(int n){
 }
 
 void train_neurons(){
-  vector<int> training_order = randomic_order(train.size());  
+  vector<int> training_order = randomic_order(train.size());    
   for(int i = 0; i < (int)train.size(); i++){        
     ii BMU = closest_neuron(train[training_order[i]]);
     //updating the neighborhood of BMU.
@@ -257,7 +257,10 @@ void save_neurons(string dir){
 int main(int argc, char const *argv[]) {
   map<string,string> param;
   for(int i = 1; i < argc; i += 2) param[argv[i]] = argv[i+1];
-  if(param.find("--lnet") != param.end()) load_neurons(param["--lnet"]);
+  if(param.find("--lnet") != param.end()){
+    load_neurons(param["--lnet"]);    
+    print_neuron_digits();
+  }
   else{
     init_neurons();    
     if(param.find("--tra") != param.end()){
@@ -265,9 +268,13 @@ int main(int argc, char const *argv[]) {
       FILE *training_file = fopen(param["--tra"].c_str(),"r");    
       read_digits(train,training_file);
       fclose(training_file);  
-      for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00004, sigma -= .0015){      
+      for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00009, sigma -= .0015){      
         printf("Iteração: %d, alpha: %lf, sigma: %lf\n",l,alpha,sigma);
-        train_neurons();     
+        train_neurons(); 
+        if((l+1)%(TRAIN_ITER/5) == 0){
+          match_training(train);    
+          print_neuron_digits();
+        }    
       }
       match_training(train);    
       print_neuron_digits();
