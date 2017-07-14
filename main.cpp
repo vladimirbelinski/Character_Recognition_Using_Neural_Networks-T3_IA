@@ -1,3 +1,10 @@
+/* Arquivo: main.cpp
+   Autores: Gabriel Batista Galli, Matheus Antonio Venancio Dall'Rosa e Vladimir Belinski
+   Descrição: O presente arquivo faz parte da resolução do Trabalho III do CCR Inteligência Artificial, 2017-1, do curso de
+              Ciência da Computação da Universidade Federal da Fronteira Sul - UFFS, o qual consiste na implementação de
+              um algoritmo para reconhecimento de digitos utilizando mapas auto-organizaveis (rede de Kohonen).
+              --> main.cpp é o arquivo principal do trabalho, onde é encontrada a implementação do algoritmo para reconhecimento.
+*/
 #include <bits/stdc++.h>
 
 using namespace std;
