@@ -9,6 +9,7 @@
 
 using namespace std;
 
+/* Definições de constantes e estruturas utilizadas. */
 const int SIZE = 32;
 const int NEURONS = 32;
 const int TRAIN_ITER = 1000;
@@ -73,6 +74,7 @@ struct Matrix{
   }
 };
 
+/* Função para cálculo da distância euclidiana entre duas matrizes. */
 double sq_euclidean_distance(Matrix &a,Matrix &b){
   double sq_distance = 0.;
   for(int i = 0; i < SIZE; i++){
@@ -84,12 +86,14 @@ double sq_euclidean_distance(Matrix &a,Matrix &b){
   return sq_distance;
 }
 
+/* Função para cálculo da distância euclidiana entre dois pontos em um plano. */
 double sq_euclidean_distance(ii a,ii b){
   double dx = a.f-b.f;
   double dy = a.s-b.s;
   return dx*dx+dy*dy;
 }
 
+/* Função para impressão dos dígitos dos neurônios. */
 vector<Matrix> train;
 Matrix neurons[NEURONS][NEURONS];
 void print_neuron_digits(){
@@ -103,6 +107,7 @@ void print_neuron_digits(){
   }
 }
 
+/* Função para leitura dos caracteres/dígitos de um arquivo. */
 void read_digits(vector<Matrix> &m,FILE *src){
   int a;
   char line[SIZE+10];
@@ -119,6 +124,7 @@ void read_digits(vector<Matrix> &m,FILE *src){
   }
 }
 
+/* Função de inicialização da rede neural. */
 void init_neurons(){
   printf("Initializing network.\n");
   srand(time(NULL));
@@ -129,6 +135,7 @@ void init_neurons(){
           neurons[i][i2][j][k] = ((double)rand()) / RAND_MAX;
 }
 
+/* Função de identificação do BMU. */
 ii closest_neuron(Matrix &m){
   ii BMU;
   double min_dist = SIZE*SIZE;
@@ -143,6 +150,7 @@ ii closest_neuron(Matrix &m){
   return BMU;
 }
 
+/* Função de randomização dos dígitos. */
 vector<int> randomic_order(int n){
   list<int> elem;
   for(int i = 0; i < n; i++) elem.push_back(i);
@@ -156,6 +164,7 @@ vector<int> randomic_order(int n){
   return order;
 }
 
+/* Função de treinamento da rede neural. */
 void train_neurons(){
   vector<int> training_order = randomic_order(train.size());
   for(int i = 0; i < (int)train.size(); i++){
@@ -174,6 +183,7 @@ void train_neurons(){
   }
 }
 
+/* Função para montagem dos clusters. */ 
 void match_training(vector<Matrix> & t){
   for(int k = 0; k < (int)t.size(); k++){
     ii BMU;
@@ -202,6 +212,7 @@ void match_training(vector<Matrix> & t){
     }
 }
 
+/* Função de execução dos testes. */
 void run_test(vector<Matrix> &t){
   int correct_occurrences = 0;
   int digit_correct_occurrences[10], digit_occurrences[10];
@@ -229,6 +240,7 @@ void run_test(vector<Matrix> &t){
     printf("Digit %d ocurred %d times with an acurracy of %lf%%\n",i,digit_occurrences[i],(double)digit_correct_occurrences[i]*100./digit_occurrences[i]);
 }
 
+/* Função de carregamento de uma rede neural. */
 void load_neurons(string dir){
   printf("Loading network.\n");
   FILE *neurons_file = fopen(dir.c_str(),"r");
@@ -242,6 +254,7 @@ void load_neurons(string dir){
   fclose(neurons_file);
 }
 
+/* Função de salvamento da rede neural. */
 void save_neurons(string dir){
   printf("Saving network.\n");
   FILE *neurons_file = fopen(dir.c_str(),"w");
@@ -258,10 +271,12 @@ void save_neurons(string dir){
   fclose(neurons_file);
 }
 
-//--tes path/to/test/file
-//--tra path/to/training/file
-//--lnet path/to/load/trained_neurons/file
-//--snet path/to/save/trained_neurons/file
+/* Função principal do programa
+   --tes path/to/test/file
+   --tra path/to/training/file
+   --lnet path/to/load/trained_neurons/file
+   --snet path/to/save/trained_neurons/file
+*/
 int main(int argc, char const *argv[]) {
   map<string,string> param;
   for(int i = 1; i < argc; i += 2) param[argv[i]] = argv[i+1];
@@ -272,7 +287,7 @@ int main(int argc, char const *argv[]) {
   else{
     init_neurons();
     if(param.find("--tra") != param.end()){
-      //reading training set
+      /* Lendo o conjunto de treinamento. */
       FILE *training_file = fopen(param["--tra"].c_str(),"r");
       read_digits(train,training_file);
       fclose(training_file);
@@ -290,7 +305,7 @@ int main(int argc, char const *argv[]) {
   }
   if(param.find("--tes") != param.end()){
     vector<Matrix> test;
-    //reading testing set
+    /* Lendo o conjunto de testes. */
     FILE *testing_file = fopen(param["--tes"].c_str(),"r");
     read_digits(test,testing_file);
     fclose(testing_file);
