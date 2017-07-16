@@ -11,9 +11,9 @@ using namespace std;
 
 /* Definições de constantes e estruturas utilizadas. */
 const int SIZE = 32;
-const int NEURONS = 32;
+const int NEURONS = 24;
 const int TRAIN_ITER = 1000;
-double sigma = 2.666;
+double sigma = 2;
 
 double alpha = .1;
 
@@ -183,7 +183,7 @@ void train_neurons(){
   }
 }
 
-/* Função para montagem dos clusters. */ 
+/* Função para montagem dos clusters. */
 void match_training(vector<Matrix> & t){
   for(int k = 0; k < (int)t.size(); k++){
     ii BMU;
@@ -291,7 +291,7 @@ int main(int argc, char const *argv[]) {
       FILE *training_file = fopen(param["--tra"].c_str(),"r");
       read_digits(train,training_file);
       fclose(training_file);
-      for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00009, sigma -= .0021){
+      for(int l = 0; alpha > 0 && l < TRAIN_ITER; l++, alpha -= .00009, sigma -= .0015){
         printf("Iteration: %d, alpha: %lf, sigma: %lf\n",l,alpha,sigma);
         train_neurons();
         if((l+1)%(TRAIN_ITER/5) == 0){
