@@ -15,4 +15,4 @@ Character Recognition Using Neural Networks
 
 - `train_test_save SAVE_TO=filename` realiza o treinamento de uma rede de Kohonen utilizando como entrada os arquivos padrões (`optdigits-orig.{tes,tra}`), a testa e salva o resultado em `filename`.
 
-Cabe destacar que os parâmetros `SAVE_TO` e `LOAD_FROM` são opcionais. Caso não sejam fornecidos, assumem o valor padrão `network.tra`.
+Cabe destacar que os parâmetros `SAVE_TO` e `LOAD_FROM` são opcionais. Caso não sejam fornecidos, assumem os valores padrão `network.tra` e `best_yet.tra`, respectivamente.
